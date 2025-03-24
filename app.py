@@ -49,8 +49,6 @@ def generateAct():
 
     # These are the input variables from the front end for the reading level
     parent.readingLevel = level_four # 1 2 3 4 based on reading level settings 
-    
-    group = 7 #class the child is in 3,4,5,6,7,8
 
     if group < 4:
         child.readingLevel = level_one
