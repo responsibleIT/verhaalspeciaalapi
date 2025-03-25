@@ -188,38 +188,19 @@ def calculateReadingLevel():
     original_text = data.get('originalText', '')
     spoken_text = data.get('spokenText', '')
 
-    #Prompt for OpenAI API
-    system_prompt = '''Je bent een expert in het beoordelen van teksten voor kinderboeken. Je gaat een tekst beoordelen of deze aan een bepaald niveau voldoet.'''
-    
-    #Reading levels
-    level_one = 'Leesniveau 1: Tekst bestaat uit korte woorden die je precies zo schrijft zoals je ze uitspreekt. Voorbeelden hiervan zijn maan, bos, man, roos. Er mogen dus geen woorden voorkomen met bijvoorbeeld sch- en -ng en -nk, -b, -d(t), -ch(t), -ooi, -aai, -oei, -eeuw, -ieuw, -uw. De zinnen zijn zo kort mogelijk. Elke zin begint op een nieuwe regel. Er komen geen in hoofdletters voor, dus alle woorden worden met kleine letters geschreven.'
-    level_two = 'Leesniveau 2: Tekst bestaat uit één- en tweelettergrepige woorden. Woorden met -sch en -ng mogen voorkomen.  Woorden mogen voorkomen eindigend op -nk, -b, -d(t), -ch(t), -ooi, -aai, -oei, -eeuw, -ieuw, -uw. Een-. Ook mogen tweelettergrepige woorden met twee of drie medeklinkers na elkaar zoals staart, botst, sprong, bankje, knappe, winkel  Er mogen ook enkele makkelijke drielettergrepige woorden voorkomen, zoals sinterklaas. De zinnen zijn meestal kort. Soms mogen samengestelde zinnen voorkomen. Hoofdletters worden gebruikt.'
-    level_three = 'Leesniveau 3: Er mogen woorden gebruikt worden met 3 of meer lettergrepen. De zinnen mogen langer zijn. De zinnen kunnen bestaan uit een hoofdzin met een bijzin. Gebruik van leenwoorden, zoals bureau, horloge, chauffeur is beperkt toegestaan. Ook eenvoudige leesmoeilijkheden van leenwoorden komen voor: i en y uitgesproken als ie; c uitgesproken als k of als s. Zinnen mogen beginnen op dezelfde regel. Samengestelde zinnen mogen voorkomen. Hoofdletters worden gebruikt.'
-    level_four = 'Leesniveau 4: Er zijn geen beperkingen in woorden en zinslengte. Lastig te lezen leenwoorden (gamen), onbekende woorden (ov-pas, ornament) en leestekens (ideeën, ruïne) komen meer voor. Woorden eindigend op -ele, -eaal, -ueel, -iaal of -ieel komen voor. Ook woorden met een trema komen voor. Ook woorden beginnend met /ch/ uitgesproken als /sj/, eindigend op –ge, uitgesproken als /zje/, eindigend op –isch, woorden met klinkerreeks, leenwoorden met eau, é of è. Hoofdletters worden gebruikt.'
-    
-    leesniveaus = level_one + level_two + level_three + level_four
+    # Calculate the word error rate
+    original_words = original_text.split()
+    spoken_words = spoken_text.split()
+    correct_words = 0
 
-    #Prompt for OpenAI API
-    prompt = system_prompt + leesniveaus + "Analyseer op welk leeniveau. Antwoord als eerste het leesniveua en beschrijf daarna je redenering. De woorden: Verteller, ENDOFACT, char1, char2, Hoofdstuk neem je NIET mee in je beoordeling."  + generated_text
+    for original_word, spoken_word in zip(original_words, spoken_words):
+        if original_word == spoken_word:
+            correct_words += 1
 
-    #Function to call the OpenAI API
-    def create_chat_completion(prompt, model="gpt-4o"):
-        # Create the chat completion
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-                ],
-            model=model,
+    word_error_rate = 1 - (correct_words / len(original_words))
+    print(word_error_rate)
 
-        )
-        # Return the generated response
-        chapter = chat_completion.choices[0].message.content
-        return chapter
-
-    return jsonify({}), 200
+    return jsonify({"wordErrorRate": word_error_rate}), 200
 
 @dataclass
 class Character:
